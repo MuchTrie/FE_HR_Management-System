@@ -24,6 +24,8 @@ VITE_AUTH_REFRESH_ENABLED=true
 VITE_AUTH_STORAGE_PREFIX=securehr
 ```
 
+Gunakan URL frontend yang diizinkan backend, yaitu `http://localhost:5173` atau `http://127.0.0.1:5173`.
+
 ## Menjalankan
 
 ```powershell

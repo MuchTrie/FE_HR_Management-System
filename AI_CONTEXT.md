@@ -19,6 +19,8 @@ Frontend SecureHR adalah React 19 + TypeScript + Vite. Routing berada di `src/ap
 - Query/mutation server state menggunakan TanStack Query; state UI lokal tetap di komponen atau context.
 - Perubahan bentuk response harus memperbarui `src/types/index.ts` dan halaman pemakaiannya.
 - Backend membatasi scope manager berdasarkan `employee.manager_id`.
+- Backend development mengizinkan origin `localhost:5173` dan `127.0.0.1:5173`; gunakan salah satu secara konsisten ketika menguji frontend.
+- Jika semua halaman tampak kosong setelah login, periksa CORS browser dan pastikan header `Authorization` diizinkan sebelum mengubah query atau komponen.
 
 ## Menjalankan dan Memeriksa
 

@@ -6,6 +6,9 @@ node_modules/
 .env.*
 !.env.example
 
+# Local AI context notes
+AI_CONTEXT.md
+
 # Build output
 dist/
 dist-ssr/
