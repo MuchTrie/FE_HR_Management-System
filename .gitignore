@@ -8,6 +8,7 @@ node_modules/
 
 # Local AI context notes
 AI_CONTEXT.md
+APPLICATION_CONTEXT.md
 
 # Build output
 dist/
