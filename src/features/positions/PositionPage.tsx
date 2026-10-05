@@ -120,7 +120,7 @@ export default function PositionPage() {
             <tbody>
               {positions?.length === 0 ? (
                 <tr><td colSpan={5}><EmptyState message="No positions found" /></td></tr>
-              ) : positions?.sort((a, b) => a.level - b.level).map((pos, idx) => (
+              ) : [...(positions ?? [])].sort((a, b) => a.level - b.level).map((pos, idx) => (
                 <tr key={pos.id}>
                   <td className="text-gray-400 text-xs">{idx + 1}</td>
                   <td className="font-medium">{pos.name}</td>

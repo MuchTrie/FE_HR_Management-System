@@ -1,4 +1,5 @@
 import { Sun, Moon, Bell } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -9,14 +10,17 @@ interface HeaderProps {
 export default function Header({ title }: HeaderProps) {
   const { toggleTheme, isDark } = useTheme()
   const { user } = useAuth()
+  const { pathname } = useLocation()
+  const routeTitle = pathname.split('/')[1]
+    ?.replace(/-/g, ' ')
+    .replace(/\b\w/g, letter => letter.toUpperCase())
+  const pageTitle = title ?? routeTitle ?? 'Dashboard'
 
   return (
     <header className="h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 flex items-center px-6 gap-4 sticky top-0 z-30">
       {/* Page title */}
       <div className="flex-1">
-        {title && (
-          <h1 className="text-lg font-bold text-gray-900 dark:text-white">{title}</h1>
-        )}
+        <h1 className="text-lg font-bold text-gray-900 dark:text-white">{pageTitle}</h1>
       </div>
 
       {/* Actions */}
@@ -35,12 +39,11 @@ export default function Header({ title }: HeaderProps) {
         </button>
 
         {/* Notification bell */}
-        <button className="w-9 h-9 rounded-lg flex items-center justify-center relative
+        <button aria-label="Notifications" className="w-9 h-9 rounded-lg flex items-center justify-center
                      text-gray-500 dark:text-gray-400
                      hover:bg-gray-100 dark:hover:bg-gray-800
                      transition-all duration-200">
           <Bell size={18} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full" />
         </button>
 
         {/* Divider */}

@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 
 const loginSchema = z.object({
   email: z.string().email('Format email tidak valid'),
-  password: z.string().min(6, 'Password minimal 6 karakter'),
+  password: z.string().min(8, 'Password minimal 8 karakter'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -46,12 +46,6 @@ export default function LoginPage() {
     }
   }
 
-  const DEMO_ACCOUNTS = [
-    { label: 'Admin', email: 'admin@securehr.com', password: 'Admin@123' },
-    { label: 'Manager', email: 'siti.rahayu@securehr.com', password: 'Manager@123' },
-    { label: 'Employee', email: 'rina.wulandari@securehr.com', password: 'Employee@123' },
-  ]
-
   return (
     <div className="min-h-screen flex bg-gray-50 dark:bg-gray-950 transition-colors duration-300">
       {/* Left panel — Brand */}
@@ -84,20 +78,11 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="relative z-10">
-          <div className="grid grid-cols-2 gap-4">
-            {[
-              { label: 'Employees', value: '200+' },
-              { label: 'Departments', value: '5' },
-              { label: 'Monthly Attendance', value: '99%' },
-              { label: 'Leave Types', value: '5' },
-            ].map(stat => (
-              <div key={stat.label} className="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                <p className="text-white font-bold text-2xl">{stat.value}</p>
-                <p className="text-white/70 text-xs mt-1">{stat.label}</p>
-              </div>
-            ))}
-          </div>
+        <div className="relative z-10 max-w-sm">
+          <div className="h-px bg-white/20 mb-4" />
+          <p className="text-white/60 text-sm">
+            A secure workspace for your people, operations, and organizational data.
+          </p>
         </div>
       </div>
 
@@ -127,19 +112,6 @@ export default function LoginPage() {
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Welcome back</h1>
               <p className="text-gray-500 dark:text-gray-400 text-sm">Sign in to your SecureHR account</p>
-            </div>
-
-            {/* Demo accounts */}
-            <div className="mb-6 p-4 rounded-xl bg-brand-50 dark:bg-brand-950/30 border border-brand-200 dark:border-brand-800">
-              <p className="text-xs font-semibold text-brand-700 dark:text-brand-400 mb-2">🔑 Demo Accounts</p>
-              <div className="space-y-1">
-                {DEMO_ACCOUNTS.map(acc => (
-                  <div key={acc.label} className="text-xs text-gray-600 dark:text-gray-400">
-                    <span className="font-medium text-brand-700 dark:text-brand-400">[{acc.label}]</span>{' '}
-                    {acc.email} / <span className="font-mono">{acc.password}</span>
-                  </div>
-                ))}
-              </div>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" id="login-form">

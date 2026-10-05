@@ -28,4 +28,4 @@ npm run build
 npm run lint
 ```
 
-Mock API sudah dihapus. Jika menambah endpoint backend, tambahkan wrapper typed di `src/lib/api.ts`.
+Mock API dan kredensial demo sudah dihapus dari frontend. Data operasional, statistik, department, position, employee, attendance, leave, dan user harus berasal dari backend. Jika menambah endpoint backend, tambahkan wrapper typed di `src/lib/api.ts`.
