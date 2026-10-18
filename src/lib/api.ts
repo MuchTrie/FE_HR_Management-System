@@ -114,12 +114,12 @@ export async function createLeave(data: CreateLeaveRequest, _employeeId?: number
   return unwrap(await apiClient.post<ApiEnvelope<LeaveRequest>>('/leaves', data))
 }
 
-export async function approveLeave(id: number, _approverId?: number): Promise<LeaveRequest> {
+export async function approveLeave(id: number): Promise<LeaveRequest> {
   return unwrap(await apiClient.post<ApiEnvelope<LeaveRequest>>(`/leaves/${id}/approve`))
 }
 
-export async function rejectLeave(id: number, _approverId?: number): Promise<LeaveRequest> {
-  return unwrap(await apiClient.post<ApiEnvelope<LeaveRequest>>(`/leaves/${id}/reject`))
+export async function rejectLeave(id: number, reason: string): Promise<LeaveRequest> {
+  return unwrap(await apiClient.post<ApiEnvelope<LeaveRequest>>(`/leaves/${id}/reject`, { reason }))
 }
 
 export async function cancelLeave(id: number): Promise<LeaveRequest> {
