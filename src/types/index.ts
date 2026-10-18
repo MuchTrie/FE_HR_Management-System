@@ -135,6 +135,8 @@ export interface LeaveRequest {
   approved_by?: number
   approver?: Employee
   approved_at?: string
+  rejection_reason?: string
+  cancelled_at?: string
   created_at: string
   updated_at: string
 }
