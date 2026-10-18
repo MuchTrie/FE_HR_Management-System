@@ -201,8 +201,21 @@ export interface EmployeeQueryParams {
   per_page?: number
   search?: string
   department_id?: number
+  position_id?: number
+  gender?: Gender
   status?: EmployeeStatus
+  join_date_from?: string
+  join_date_to?: string
+  sort_by?: EmployeeSortField
+  sort_order?: SortOrder
 }
+
+export type EmployeeSortField =
+  | 'id' | 'employee_number' | 'first_name' | 'last_name' | 'email'
+  | 'phone' | 'date_of_birth' | 'gender' | 'department_id'
+  | 'position_id' | 'manager_id' | 'join_date' | 'status'
+  | 'created_at' | 'updated_at'
+export type SortOrder = 'ASC' | 'DESC'
 
 export interface AttendanceQueryParams {
   page?: number

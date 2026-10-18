@@ -1,24 +1,64 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Pencil, Trash2, Eye, Filter } from 'lucide-react'
+import { Plus, Search, Pencil, Trash2, Eye, SlidersHorizontal, X } from 'lucide-react'
 import {
   getEmployees, deleteEmployee,
-  getDepartments,
+  getDepartments, getPositions,
 } from '../../lib/api'
-import type { EmployeeQueryParams, EmployeeStatus } from '../../types'
+import type { EmployeeQueryParams, EmployeeSortField, EmployeeStatus, Gender, SortOrder } from '../../types'
 import { EmployeeStatusBadge } from '../../components/ui/Badge'
 import { TableSkeleton, EmptyState } from '../../components/ui/Loading'
 import { ConfirmModal } from '../../components/ui/Modal'
 import Pagination from '../../components/ui/Pagination'
 import toast from 'react-hot-toast'
+import { useAuth } from '../../contexts/AuthContext'
+
+const sortOptions: { value: EmployeeSortField; label: string }[] = [
+  { value: 'id', label: 'ID' },
+  { value: 'employee_number', label: 'Employee number' },
+  { value: 'first_name', label: 'First name' },
+  { value: 'last_name', label: 'Last name' },
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Phone' },
+  { value: 'date_of_birth', label: 'Date of birth' },
+  { value: 'gender', label: 'Gender' },
+  { value: 'department_id', label: 'Department' },
+  { value: 'position_id', label: 'Position' },
+  { value: 'manager_id', label: 'Manager' },
+  { value: 'join_date', label: 'Join date' },
+  { value: 'status', label: 'Status' },
+  { value: 'created_at', label: 'Created date' },
+  { value: 'updated_at', label: 'Updated date' },
+]
+
+const formatDate = (value: string) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date)
+}
 
 export default function EmployeeListPage() {
   const navigate = useNavigate()
   const qc = useQueryClient()
-  const [params, setParams] = useState<EmployeeQueryParams>({ page: 1, per_page: 10 })
+  const { user, hasRole } = useAuth()
+  const canManageEmployees = hasRole('ADMIN')
+  const [params, setParams] = useState<EmployeeQueryParams>({
+    page: 1, per_page: 10, status: 'ACTIVE', sort_by: 'first_name', sort_order: 'ASC',
+  })
   const [search, setSearch] = useState('')
   const [deleteId, setDeleteId] = useState<number | null>(null)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setParams(previous => ({ ...previous, search: search.trim() || undefined, page: 1 }))
+    }, 300)
+    return () => window.clearTimeout(timer)
+  }, [search])
 
   const { data, isLoading } = useQuery({
     queryKey: ['employees', params],
@@ -28,6 +68,11 @@ export default function EmployeeListPage() {
   const { data: departments } = useQuery({
     queryKey: ['departments'],
     queryFn: getDepartments,
+  })
+
+  const { data: positions } = useQuery({
+    queryKey: ['positions'],
+    queryFn: getPositions,
   })
 
   const deleteMutation = useMutation({
@@ -40,32 +85,58 @@ export default function EmployeeListPage() {
     onError: () => toast.error('Failed to delete'),
   })
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    setParams(p => ({ ...p, search, page: 1 }))
+  const hasFilters = Boolean(
+    search || params.department_id || params.position_id || params.gender ||
+    params.join_date_from || params.join_date_to || params.status !== 'ACTIVE' ||
+    params.sort_by !== 'first_name' || params.sort_order !== 'ASC',
+  )
+
+  const clearFilters = () => {
+    setSearch('')
+    setParams({
+      page: 1, per_page: params.per_page, status: 'ACTIVE',
+      sort_by: 'first_name', sort_order: 'ASC',
+    })
   }
 
   return (
-    <div>
+    <div className="space-y-5">
       <div className="page-header">
         <div>
-          <h1 className="page-title">Employees</h1>
-          <p className="page-subtitle">Manage all employee records</p>
+          <div className="flex items-center gap-2">
+            <h1 className="page-title">Employees</h1>
+            {data && <span className="badge badge-gray">{data.total}</span>}
+          </div>
+          <p className="page-subtitle">
+            {user?.role === 'ADMIN' ? 'Manage all employee records' :
+              user?.role === 'MANAGER' ? 'Manage direct report records' : 'View your employee record'}
+          </p>
         </div>
-        <button
-          id="btn-add-employee"
+          {canManageEmployees && <button
+            id="btn-add-employee"
           className="btn-primary btn"
           onClick={() => navigate('/employees/new')}
         >
           <Plus size={16} />
           Add Employee
-        </button>
+        </button>}
       </div>
 
-      {/* Filters */}
-      <div className="card p-4 mb-5">
-        <form onSubmit={handleSearch} className="flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[200px] relative">
+      <section className="card p-4 sm:p-5">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal size={16} className="text-brand-500" />
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-white">Filter employees</h2>
+          </div>
+          {hasFilters && (
+            <button type="button" className="btn-ghost btn btn-sm" onClick={clearFilters}>
+              <X size={14} />
+              Clear filters
+            </button>
+          )}
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="relative sm:col-span-2">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               id="employee-search"
@@ -78,32 +149,87 @@ export default function EmployeeListPage() {
           </div>
           <select
             id="filter-department"
-            className="select w-44"
+            className="select w-full"
             value={params.department_id ?? ''}
             onChange={e => setParams(p => ({ ...p, department_id: e.target.value ? Number(e.target.value) : undefined, page: 1 }))}
           >
-            <option value="">All Departments</option>
+            <option value="">All departments</option>
             {departments?.map(d => (
               <option key={d.id} value={d.id}>{d.name}</option>
             ))}
           </select>
           <select
+            id="filter-position"
+            className="select w-full"
+            value={params.position_id ?? ''}
+            onChange={e => setParams(p => ({ ...p, position_id: e.target.value ? Number(e.target.value) : undefined, page: 1 }))}
+          >
+            <option value="">All positions</option>
+            {positions?.map(position => (
+              <option key={position.id} value={position.id}>{position.name}</option>
+            ))}
+          </select>
+          <select
+            id="filter-gender"
+            className="select w-full"
+            value={params.gender ?? ''}
+            onChange={e => setParams(p => ({ ...p, gender: (e.target.value as Gender) || undefined, page: 1 }))}
+          >
+            <option value="">All genders</option>
+            <option value="MALE">Male</option>
+            <option value="FEMALE">Female</option>
+          </select>
+          <select
             id="filter-status"
-            className="select w-36"
+            className="select w-full"
             value={params.status ?? ''}
             onChange={e => setParams(p => ({ ...p, status: (e.target.value as EmployeeStatus) || undefined, page: 1 }))}
           >
-            <option value="">All Status</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
-            <option value="RESIGNED">RESIGNED</option>
+            <option value="">All status</option>
+            <option value="ACTIVE">Active</option>
+            <option value="INACTIVE">Inactive</option>
+            <option value="RESIGNED">Resigned</option>
           </select>
-          <button type="submit" className="btn-primary btn">
-            <Filter size={15} />
-            Filter
-          </button>
-        </form>
-      </div>
+          <input
+            id="filter-join-date-from"
+            type="date"
+            className="input w-full"
+            value={params.join_date_from ?? ''}
+            onChange={e => setParams(p => ({ ...p, join_date_from: e.target.value || undefined, page: 1 }))}
+            aria-label="Join date from"
+            title="Join date from"
+          />
+          <input
+            id="filter-join-date-to"
+            type="date"
+            className="input w-full"
+            value={params.join_date_to ?? ''}
+            onChange={e => setParams(p => ({ ...p, join_date_to: e.target.value || undefined, page: 1 }))}
+            aria-label="Join date to"
+            title="Join date to"
+          />
+          <select
+            id="sort-by"
+            className="select w-full"
+            value={params.sort_by}
+            onChange={e => setParams(p => ({ ...p, sort_by: e.target.value as EmployeeSortField, page: 1 }))}
+          >
+            {sortOptions.map(option => <option key={option.value} value={option.value}>Sort: {option.label}</option>)}
+          </select>
+          <select
+            id="sort-order"
+            className="select w-full"
+            value={params.sort_order}
+            onChange={e => setParams(p => ({ ...p, sort_order: e.target.value as SortOrder, page: 1 }))}
+          >
+            <option value="ASC">Ascending</option>
+            <option value="DESC">Descending</option>
+          </select>
+        </div>
+        <p className="mt-3 text-xs text-gray-400 dark:text-gray-500">
+          Search by name, email, or employee number. Results update automatically.
+        </p>
+      </section>
 
       {/* Table */}
       {isLoading ? (
@@ -118,14 +244,14 @@ export default function EmployeeListPage() {
                 <th>Department</th>
                 <th>Position</th>
                 <th>Status</th>
-                <th>Join Date</th>
-                <th>Actions</th>
+                <th>Join date</th>
+                {canManageEmployees && <th className="text-right">Actions</th>}
               </tr>
             </thead>
             <tbody>
               {data?.items.length === 0 ? (
                 <tr>
-                  <td colSpan={7}>
+                  <td colSpan={canManageEmployees ? 7 : 6}>
                     <EmptyState message="No employees found" />
                   </td>
                 </tr>
@@ -150,32 +276,32 @@ export default function EmployeeListPage() {
                   <td>{emp.department?.name ?? '—'}</td>
                   <td>{emp.position?.name ?? '—'}</td>
                   <td><EmployeeStatusBadge status={emp.status} /></td>
-                  <td>{emp.join_date}</td>
-                  <td>
-                    <div className="flex items-center gap-1">
-                      <button
+                  <td className="whitespace-nowrap">{formatDate(emp.join_date)}</td>
+                  {canManageEmployees && <td>
+                    <div className="flex justify-end gap-1">
+                      {canManageEmployees && <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => navigate(`/employees/${emp.id}`)}
                         title="View"
                       >
                         <Eye size={14} />
-                      </button>
-                      <button
+                      </button>}
+                      {canManageEmployees && <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => navigate(`/employees/${emp.id}/edit`)}
                         title="Edit"
                       >
                         <Pencil size={14} />
-                      </button>
-                      <button
+                      </button>}
+                      {canManageEmployees && <button
                         className="btn btn-ghost btn-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
                         onClick={() => setDeleteId(emp.id)}
                         title="Delete"
                       >
                         <Trash2 size={14} />
-                      </button>
+                      </button>}
                     </div>
-                  </td>
+                  </td>}
                 </tr>
               ))}
             </tbody>
@@ -191,6 +317,21 @@ export default function EmployeeListPage() {
         perPage={params.per_page}
       />
 
+      <div className="flex justify-end mt-3">
+        <label className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+          Per page
+          <select
+            className="select w-24"
+            value={params.per_page}
+            onChange={e => setParams(p => ({ ...p, per_page: Number(e.target.value), page: 1 }))}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+        </label>
+      </div>
+
       <ConfirmModal
         isOpen={deleteId !== null}
         onClose={() => setDeleteId(null)}
@@ -204,4 +345,3 @@ export default function EmployeeListPage() {
     </div>
   )
 }
-import type React from 'react'
