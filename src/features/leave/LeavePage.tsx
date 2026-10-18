@@ -21,6 +21,9 @@ const leaveSchema = z.object({
   start_date: z.string().min(1, 'Required'),
   end_date: z.string().min(1, 'Required'),
   reason: z.string().min(10, 'Reason must be at least 10 characters'),
+}).refine(value => value.end_date >= value.start_date, {
+  path: ['end_date'],
+  message: 'End date must be on or after start date',
 })
 type LeaveForm = z.infer<typeof leaveSchema>
 
@@ -74,6 +77,7 @@ export default function LeavePage() {
 
   const [formOpen, setFormOpen] = useState(false)
   const [actionModal, setActionModal] = useState<{ id: number; action: 'approve' | 'reject' | 'cancel' } | null>(null)
+  const [rejectionReason, setRejectionReason] = useState('')
   const [page, setPage] = useState(1)
   const [filterStatus, setFilterStatus] = useState<LeaveStatus | ''>('')
 
@@ -93,17 +97,18 @@ export default function LeavePage() {
   })
 
   const actionMutation = useMutation({
-    mutationFn: async ({ id, action }: { id: number; action: string }) => {
-      if (action === 'approve') return approveLeave(id, user!.employee_id!)
-      if (action === 'reject') return rejectLeave(id, user!.employee_id!)
+    mutationFn: async ({ id, action, reason }: { id: number; action: string; reason?: string }) => {
+      if (action === 'approve') return approveLeave(id)
+      if (action === 'reject') return rejectLeave(id, reason ?? '')
       return cancelLeave(id)
     },
     onSuccess: (_, vars) => {
       toast.success(`Leave ${vars.action}d successfully`)
       qc.invalidateQueries({ queryKey: ['leaves'] })
       setActionModal(null)
+      setRejectionReason('')
     },
-    onError: () => toast.error('Action failed'),
+    onError: (e: Error) => toast.error(e.message),
   })
 
   return (
@@ -170,6 +175,9 @@ export default function LeavePage() {
                   <td>{lr.end_date}</td>
                   <td className="max-w-xs">
                     <p className="truncate text-gray-500 dark:text-gray-400 text-xs">{lr.reason}</p>
+                    {lr.status === 'REJECTED' && lr.rejection_reason && (
+                      <p className="truncate text-red-500 text-xs" title={lr.rejection_reason}>Rejected: {lr.rejection_reason}</p>
+                    )}
                   </td>
                   <td><LeaveStatusBadge status={lr.status} /></td>
                   <td>
@@ -186,7 +194,7 @@ export default function LeavePage() {
                           </button>
                           <button
                             className="btn btn-ghost btn-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-                            onClick={() => setActionModal({ id: lr.id, action: 'reject' })}
+                            onClick={() => { setRejectionReason(''); setActionModal({ id: lr.id, action: 'reject' }) }}
                             title="Reject"
                           >
                             <XCircle size={15} />
@@ -225,24 +233,44 @@ export default function LeavePage() {
         <LeaveRequestForm onSubmit={(d) => createMutation.mutate(d)} isLoading={createMutation.isPending} />
       </Modal>
 
-      {/* Action confirm */}
-      <ConfirmModal
-        isOpen={!!actionModal}
-        onClose={() => setActionModal(null)}
-        onConfirm={() => actionModal && actionMutation.mutate({ id: actionModal.id, action: actionModal.action })}
-        title={
-          actionModal?.action === 'approve' ? 'Approve Leave' :
-          actionModal?.action === 'reject' ? 'Reject Leave' : 'Cancel Leave'
-        }
-        message={
-          actionModal?.action === 'approve' ? 'Are you sure you want to approve this leave request?' :
-          actionModal?.action === 'reject' ? 'Are you sure you want to reject this leave request?' :
-          'Are you sure you want to cancel this leave request?'
-        }
-        confirmText={actionModal?.action === 'approve' ? 'Approve' : actionModal?.action === 'reject' ? 'Reject' : 'Cancel Request'}
-        variant={actionModal?.action === 'reject' || actionModal?.action === 'cancel' ? 'danger' : 'default'}
-        isLoading={actionMutation.isPending}
-      />
+      {actionModal?.action === 'reject' ? (
+        <Modal isOpen onClose={() => setActionModal(null)} title="Reject Leave" size="sm">
+          <div className="space-y-4">
+            <div>
+              <label className="label" htmlFor="rejection-reason">Reason</label>
+              <textarea
+                id="rejection-reason"
+                className="textarea"
+                rows={4}
+                value={rejectionReason}
+                onChange={e => setRejectionReason(e.target.value)}
+                placeholder="Explain why this request is rejected..."
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <button className="btn-outline" onClick={() => setActionModal(null)} disabled={actionMutation.isPending}>Cancel</button>
+              <button
+                className="btn-danger btn"
+                disabled={actionMutation.isPending || rejectionReason.trim().length < 3}
+                onClick={() => actionModal && actionMutation.mutate({ id: actionModal.id, action: 'reject', reason: rejectionReason.trim() })}
+              >
+                {actionMutation.isPending ? 'Rejecting...' : 'Reject Leave'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      ) : (
+        <ConfirmModal
+          isOpen={!!actionModal}
+          onClose={() => setActionModal(null)}
+          onConfirm={() => actionModal && actionMutation.mutate({ id: actionModal.id, action: actionModal.action })}
+          title={actionModal?.action === 'approve' ? 'Approve Leave' : 'Cancel Leave'}
+          message={actionModal?.action === 'approve' ? 'Are you sure you want to approve this leave request?' : 'Are you sure you want to cancel this leave request?'}
+          confirmText={actionModal?.action === 'approve' ? 'Approve' : 'Cancel Request'}
+          variant={actionModal?.action === 'cancel' ? 'danger' : 'default'}
+          isLoading={actionMutation.isPending}
+        />
+      )}
     </div>
   )
 }
