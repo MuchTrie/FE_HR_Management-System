@@ -1,13 +1,41 @@
+import axios from 'axios'
 import apiClient from './axios'
 import type {
   ApiResponse, Attendance, AttendanceQueryParams, AuthUser, CreateDepartmentRequest,
   CreateEmployeeRequest, CreateLeaveRequest, CreatePositionRequest, DashboardStats,
-  Department, Employee, EmployeeQueryParams, LeaveRequest, LeaveQueryParams, PaginatedResponse,
+  Department, Employee, EmployeeQueryParams, LeaveBalance, LeavePolicy, LeaveRequest, LeaveQueryParams, PaginatedResponse,
   Position, User,
 } from '../types'
 
 type LoginResult = { token: string; refresh_token: string; user: AuthUser }
 type ApiEnvelope<T> = ApiResponse<T>
+
+const apiErrorMessages: Record<string, string> = {
+  LEAVE_QUOTA_EXCEEDED: 'Pengajuan cuti melebihi sisa kuota cuti Anda.',
+  LEAVE_OVERLAP: 'Tanggal cuti bertabrakan dengan pengajuan cuti lain.',
+  LEAVE_RULE_VIOLATION: 'Pengajuan cuti tidak memenuhi aturan cuti yang berlaku.',
+  INVALID_LEAVE_TYPE: 'Jenis cuti yang dipilih tidak tersedia.',
+  INVALID_STATUS: 'Pengajuan cuti ini sudah tidak dapat diproses.',
+  FORBIDDEN: 'Anda tidak memiliki izin untuk melakukan tindakan ini.',
+  INVALID_REQUEST: 'Data yang dimasukkan belum lengkap atau tidak valid.',
+}
+
+export function getApiErrorMessage(error: unknown, fallback = 'Terjadi kesalahan. Silakan coba lagi.') {
+  if (axios.isAxiosError(error)) {
+    const code = error.response?.data?.error?.code
+    const message = code ? apiErrorMessages[code] : undefined
+    if (message) return message
+    if (typeof error.response?.data?.error?.message === 'string') {
+      return error.response.data.error.message
+    }
+    if (error.response?.status === 409) return 'Permintaan tidak dapat diproses karena bertentangan dengan data yang sudah ada.'
+    if (error.response?.status === 403) return 'Anda tidak memiliki izin untuk melakukan tindakan ini.'
+    if (error.response?.status === 404) return 'Data yang diminta tidak ditemukan.'
+  }
+  return error instanceof Error && error.message !== 'Request failed with status code 409'
+    ? error.message
+    : fallback
+}
 
 const unwrap = <T>(response: { data: ApiEnvelope<T> }): T => response.data.data
 
@@ -112,6 +140,18 @@ export async function getLeaves(params?: LeaveQueryParams): Promise<PaginatedRes
 
 export async function createLeave(data: CreateLeaveRequest, _employeeId?: number): Promise<LeaveRequest> {
   return unwrap(await apiClient.post<ApiEnvelope<LeaveRequest>>('/leaves', data))
+}
+
+export async function updateLeave(id: number, data: CreateLeaveRequest): Promise<LeaveRequest> {
+  return unwrap(await apiClient.put<ApiEnvelope<LeaveRequest>>(`/leaves/${id}`, data))
+}
+
+export async function getLeaveBalance(year?: number): Promise<LeaveBalance[]> {
+  return unwrap(await apiClient.get<ApiEnvelope<LeaveBalance[]>>('/leaves/balance', { params: year ? { year } : undefined }))
+}
+
+export async function getLeavePolicies(): Promise<LeavePolicy[]> {
+  return unwrap(await apiClient.get<ApiEnvelope<LeavePolicy[]>>('/leave-policies'))
 }
 
 export async function approveLeave(id: number): Promise<LeaveRequest> {
