@@ -137,6 +137,8 @@ export interface LeaveRequest {
   approved_at?: string
   rejection_reason?: string
   cancelled_at?: string
+  approval_level: number
+  required_levels: number
   created_at: string
   updated_at: string
 }
@@ -146,6 +148,39 @@ export interface CreateLeaveRequest {
   start_date: string
   end_date: string
   reason: string
+}
+
+export interface LeaveBalance {
+  leave_type: LeaveType
+  quota: number
+  used: number
+  remaining: number
+  year: number
+}
+
+export interface LeavePolicy {
+  id: number
+  leave_type: LeaveType
+  annual_quota_days: number
+  max_consecutive_days: number
+  allow_weekend: boolean
+  required_approval_levels: number
+}
+
+export interface CompanyHoliday {
+  id: number
+  date: string
+  name: string
+}
+
+export interface LeaveStatusHistory {
+  id: number
+  leave_id: number
+  from_status: LeaveStatus
+  to_status: LeaveStatus
+  changed_by: number
+  reason?: string
+  created_at: string
 }
 
 // ─── User ────────────────────────────────────────────────────────────────────
