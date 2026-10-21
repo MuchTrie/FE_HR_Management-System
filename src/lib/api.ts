@@ -174,6 +174,6 @@ export async function toggleUserActive(id: number): Promise<User> {
   return unwrap(await apiClient.patch<ApiEnvelope<User>>(`/users/${id}/status`))
 }
 
-export async function getDashboardStats(): Promise<DashboardStats> {
-  return unwrap(await apiClient.get<ApiEnvelope<DashboardStats>>('/dashboard/stats'))
+export async function getDashboardStats(preset: DashboardStats['preset'] = 'this_month'): Promise<DashboardStats> {
+  return unwrap(await apiClient.get<ApiEnvelope<DashboardStats>>('/dashboard/stats', { params: { preset } }))
 }

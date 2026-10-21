@@ -222,12 +222,21 @@ export interface PaginatedResponse<T> {
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 export interface DashboardStats {
+  preset: 'this_month' | 'last_3_months' | 'this_year'
+  period_start: string
+  period_end: string
   total_employees: number
   total_departments: number
   present_today: number
   pending_leaves: number
   absent_today: number
   total_users: number
+  department_counts: Record<string, number>
+  attendance_status_counts: Record<string, number>
+  leave_monthly: Record<string, number>
+  leave_status_counts: Record<string, number>
+  employee_status_counts: Record<string, number>
+  late_attendance: number
 }
 
 // ─── Query Params ─────────────────────────────────────────────────────────────
