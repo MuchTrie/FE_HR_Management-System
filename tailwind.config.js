@@ -24,6 +24,11 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Inter', 'system-ui', 'sans-serif'],
+      },
+      fontSize: {
+        'stat-lg': ['2.75rem', { lineHeight: '1', fontWeight: '800', letterSpacing: '-0.02em' }],
+        'stat-md': ['1.75rem', { lineHeight: '1.25', fontWeight: '700', letterSpacing: '-0.015em' }],
       },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',

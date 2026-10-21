@@ -3,7 +3,20 @@ import { Loader2 } from 'lucide-react'
 // ─── Skeleton block ───────────────────────────────────────────────────────────
 export function Skeleton({ className = '' }: { className?: string }) {
   return (
-    <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
+    <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded-md ${className}`} />
+  )
+}
+
+// ─── Stat card skeleton ───────────────────────────────────────────────────────
+export function StatCardSkeleton() {
+  return (
+    <div className="card flex flex-col justify-between p-4 animate-pulse h-32">
+      <div className="flex items-center gap-3">
+        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-4 w-20" />
+      </div>
+      <Skeleton className="h-8 w-24 ml-auto" />
+    </div>
   )
 }
 
@@ -29,17 +42,6 @@ export function TableSkeleton({ rows = 5, cols = 5 }: { rows?: number; cols?: nu
           ))}
         </tbody>
       </table>
-    </div>
-  )
-}
-
-// ─── Stat card skeleton ───────────────────────────────────────────────────────
-export function StatCardSkeleton() {
-  return (
-    <div className="card p-5">
-      <Skeleton className="h-4 w-24 mb-3" />
-      <Skeleton className="h-8 w-16 mb-2" />
-      <Skeleton className="h-3 w-32" />
     </div>
   )
 }

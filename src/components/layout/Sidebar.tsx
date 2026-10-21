@@ -50,9 +50,6 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-0.5 scrollbar-hidden">
-        <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest px-3 mb-2">
-          Menu
-        </p>
         {visibleItems.map(item => (
           <NavLink
             key={item.to}
