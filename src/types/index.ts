@@ -173,6 +173,11 @@ export interface CompanyHoliday {
   name: string
 }
 
+export interface CreateHolidayRequest {
+  date: string
+  name: string
+}
+
 export interface LeaveStatusHistory {
   id: number
   leave_id: number

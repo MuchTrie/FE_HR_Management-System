@@ -4,7 +4,7 @@ import type {
   ApiResponse, Attendance, AttendanceQueryParams, AuthUser, CreateDepartmentRequest,
   CreateEmployeeRequest, CreateLeaveRequest, CreatePositionRequest, DashboardStats,
   Department, Employee, EmployeeQueryParams, LeaveBalance, LeavePolicy, LeaveRequest, LeaveQueryParams, PaginatedResponse,
-  Position, User, CompanyHoliday,
+  Position, User, CompanyHoliday, CreateHolidayRequest,
 } from '../types'
 
 type LoginResult = { token: string; refresh_token: string; user: AuthUser }
@@ -122,6 +122,18 @@ export async function getAttendance(params?: AttendanceQueryParams): Promise<Pag
 
 export async function getHolidays(year?: number): Promise<CompanyHoliday[]> {
   return unwrap(await apiClient.get<ApiEnvelope<CompanyHoliday[]>>('/holidays', { params: year ? { year } : undefined }))
+}
+
+export async function createHoliday(data: CreateHolidayRequest): Promise<CompanyHoliday> {
+  return unwrap(await apiClient.post<ApiEnvelope<CompanyHoliday>>('/holidays', data))
+}
+
+export async function updateHoliday(id: number, data: CreateHolidayRequest): Promise<CompanyHoliday> {
+  return unwrap(await apiClient.put<ApiEnvelope<CompanyHoliday>>(`/holidays/${id}`, data))
+}
+
+export async function deleteHoliday(id: number): Promise<void> {
+  await apiClient.delete(`/holidays/${id}`)
 }
 
 export async function checkIn(_employeeId?: number): Promise<Attendance> {
