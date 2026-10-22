@@ -4,7 +4,7 @@ import type {
   ApiResponse, Attendance, AttendanceQueryParams, AuthUser, CreateDepartmentRequest,
   CreateEmployeeRequest, CreateLeaveRequest, CreatePositionRequest, DashboardStats,
   Department, Employee, EmployeeQueryParams, LeaveBalance, LeavePolicy, LeaveRequest, LeaveQueryParams, PaginatedResponse,
-  Position, User,
+  Position, User, CompanyHoliday,
 } from '../types'
 
 type LoginResult = { token: string; refresh_token: string; user: AuthUser }
@@ -118,6 +118,10 @@ export async function deletePosition(id: number): Promise<void> {
 export async function getAttendance(params?: AttendanceQueryParams): Promise<PaginatedResponse<Attendance>['data']> {
   const items = unwrap(await apiClient.get<ApiEnvelope<Attendance[]>>('/attendance', { params }))
   return { items, total: items.length, page: params?.page ?? 1, per_page: params?.per_page ?? items.length, total_pages: 1 }
+}
+
+export async function getHolidays(year?: number): Promise<CompanyHoliday[]> {
+  return unwrap(await apiClient.get<ApiEnvelope<CompanyHoliday[]>>('/holidays', { params: year ? { year } : undefined }))
 }
 
 export async function checkIn(_employeeId?: number): Promise<Attendance> {
