@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, Users, Building2, Briefcase,
-  Clock, CalendarOff, UserCog, LogOut, Shield,
+  Clock, CalendarDays, CalendarOff, UserCog, LogOut, Shield,
 } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -18,6 +18,7 @@ const navItems: NavItemDef[] = [
   { label: 'Departments', to: '/departments', icon: <Building2 size={18} />,     roles: ['ADMIN'] },
   { label: 'Positions',   to: '/positions',   icon: <Briefcase size={18} />,     roles: ['ADMIN'] },
   { label: 'Attendance',  to: '/attendance',  icon: <Clock size={18} /> },
+  { label: 'Attendance Calendar', to: '/attendance/calendar', icon: <CalendarDays size={18} /> },
   { label: 'Leave',       to: '/leaves',      icon: <CalendarOff size={18} /> },
   { label: 'Users',       to: '/users',       icon: <UserCog size={18} />,       roles: ['ADMIN'] },
 ]
