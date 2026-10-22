@@ -11,6 +11,7 @@ import DepartmentPage from '../features/departments/DepartmentPage'
 import PositionPage from '../features/positions/PositionPage'
 import AttendancePage from '../features/attendance/AttendancePage'
 import AttendanceCalendarPage from '../features/attendance/AttendanceCalendarPage'
+import HolidayPage from '../features/holidays/HolidayPage'
 import LeavePage from '../features/leave/LeavePage'
 import UsersPage from '../features/users/UsersPage'
 import ProfilePage from '../features/profile/ProfilePage'
@@ -34,6 +35,7 @@ const router = createBrowserRouter([
       { path: 'positions',             element: <PositionPage /> },
       { path: 'attendance',            element: <AttendancePage /> },
       { path: 'attendance/calendar',  element: <AttendanceCalendarPage /> },
+      { path: 'holidays',             element: <HolidayPage /> },
       { path: 'leaves',                element: <LeavePage /> },
       { path: 'users',                 element: <UsersPage /> },
       { path: 'profile',               element: <ProfilePage /> },
